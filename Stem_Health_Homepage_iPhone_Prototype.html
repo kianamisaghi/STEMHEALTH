@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#241714">
+  <meta name="description" content="High-fidelity mobile homepage prototype for Stem Health, optimized for iPhone-sized viewports.">
+  <title>Stem Health — iPhone Homepage Prototype</title>
+  <style>
+    :root{
+      --brown-950:#241714;
+      --brown-900:#30211c;
+      --brown-800:#3d2c25;
+      --beige-50:#fffdf9;
+      --beige-100:#f6f0e8;
+      --beige-200:#e8ddd1;
+      --beige-300:#d4c3b3;
+      --sage:#a9b69b;
+      --sage-dark:#74806d;
+      --gold:#c7a678;
+      --ink:#2b211d;
+      --muted:#6d6159;
+      --white:#fff;
+      --focus:#f1b866;
+      --radius-s:14px;
+      --radius-m:22px;
+      --radius-l:30px;
+      --shadow:0 18px 45px rgba(36,23,20,.16);
+      --phone-w:393px;
+      --phone-h:852px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;background:#d9d3cc}
+    body{
+      margin:0;
+      min-width:320px;
+      color:var(--ink);
+      background:#d9d3cc;
+      font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      line-height:1.5;
+      -webkit-font-smoothing:antialiased;
+    }
+    body.menu-open{overflow:hidden}
+    a{color:inherit}
+    button,input{font:inherit}
+    img,svg{display:block;max-width:100%}
+    [hidden]{display:none!important}
+    :focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+
+    .skip-link{
+      position:fixed;left:12px;top:12px;z-index:1000;
+      transform:translateY(-160%);padding:10px 14px;border-radius:999px;
+      background:var(--white);color:var(--brown-950);font-weight:800;text-decoration:none;
+    }
+    .skip-link:focus{transform:translateY(0)}
+
+    .device-stage{min-height:100vh;display:grid;place-items:center;padding:26px}
+    .phone-shell{
+      position:relative;width:min(100%,var(--phone-w));height:min(var(--phone-h),calc(100vh - 52px));
+      border:10px solid #111;border-radius:48px;background:#111;box-shadow:0 30px 80px rgba(0,0,0,.28);overflow:hidden;
+    }
+    .dynamic-island{
+      position:absolute;top:10px;left:50%;z-index:300;transform:translateX(-50%);
+      width:118px;height:32px;border-radius:999px;background:#050505;pointer-events:none;
+    }
+    .app{
+      position:absolute;inset:0;border-radius:38px;overflow:auto;background:var(--beige-100);
+      overscroll-behavior:contain;scrollbar-width:none;
+    }
+    .app::-webkit-scrollbar{display:none}
+
+    .container{width:min(100% - 32px,520px);margin-inline:auto}
+    .eyebrow{margin:0 0 12px;font-size:.7rem;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--sage-dark)}
+    .section-dark .eyebrow,.hero .eyebrow{color:#cbd4c3}
+    h1,h2,h3{margin:0;font-family:Georgia,"Times New Roman",serif;font-weight:500;line-height:1.04;letter-spacing:-.032em}
+    h1{font-size:clamp(2.75rem,14vw,4.15rem)}
+    h2{font-size:clamp(2.12rem,10vw,3rem)}
+    h3{font-size:1.45rem}
+    p{margin:0}
+    .lede{font-size:1rem;line-height:1.62;color:var(--muted)}
+    .section-dark .lede,.hero .lede{color:rgba(255,255,255,.78)}
+
+    .site-header{
+      position:sticky;top:0;z-index:120;height:64px;
+      padding-top:max(0px,env(safe-area-inset-top));
+      background:rgba(246,240,232,.96);backdrop-filter:blur(16px);
+      border-bottom:1px solid rgba(43,33,29,.11);
+    }
+    .header-row{height:64px;display:flex;align-items:center;justify-content:space-between;gap:14px}
+    .brand{
+      display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--brown-950);
+      font-family:Georgia,"Times New Roman",serif;font-size:.84rem;letter-spacing:.105em;white-space:nowrap;
+    }
+    .brand-mark{width:12px;height:18px;position:relative}
+    .brand-mark::before,.brand-mark::after{
+      content:"";position:absolute;width:6px;height:14px;border:1px solid currentColor;border-radius:70% 30% 70% 30%;
+    }
+    .brand-mark::before{left:0;top:0;transform:rotate(-25deg)}
+    .brand-mark::after{right:0;bottom:0;transform:rotate(25deg)}
+    .menu-button{
+      width:44px;height:44px;display:grid;place-items:center;border:1px solid rgba(43,33,29,.22);
+      border-radius:50%;background:transparent;color:var(--brown-950);cursor:pointer;
+    }
+    .menu-lines{width:18px;height:14px;position:relative}
+    .menu-lines::before,.menu-lines::after,.menu-lines span{content:"";position:absolute;left:0;width:18px;height:1.5px;background:currentColor;transition:.2s ease}
+    .menu-lines::before{top:0}.menu-lines span{top:6px}.menu-lines::after{top:12px}
+    .menu-button[aria-expanded="true"] .menu-lines::before{top:6px;transform:rotate(45deg)}
+    .menu-button[aria-expanded="true"] .menu-lines span{opacity:0}
+    .menu-button[aria-expanded="true"] .menu-lines::after{top:6px;transform:rotate(-45deg)}
+
+    .mobile-menu{
+      position:absolute;inset:64px 0 0;z-index:110;padding:22px 16px 34px;background:var(--beige-100);overflow:auto;
+    }
+    .mobile-menu nav{display:grid;gap:4px}
+    .mobile-menu a{
+      min-height:52px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;
+      border-radius:12px;text-decoration:none;font-weight:800;
+    }
+    .mobile-menu a:not(.button):hover{background:var(--beige-200)}
+    .mobile-menu .button{margin-top:14px;justify-content:center}
+    .menu-utility{margin-top:14px;padding-top:14px;border-top:1px solid rgba(43,33,29,.13)}
+
+    .button{
+      min-height:50px;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+      width:100%;padding:13px 18px;border:1px solid transparent;border-radius:10px;
+      font-weight:850;line-height:1.15;text-align:center;text-decoration:none;cursor:pointer;
+      transition:transform .18s ease,background .18s ease,border-color .18s ease;
+    }
+    .button:active{transform:scale(.985)}
+    .button-light{background:var(--beige-100);color:var(--brown-950)}
+    .button-dark{background:var(--brown-950);color:var(--white)}
+    .button-outline-light{border-color:rgba(255,255,255,.62);background:rgba(36,23,20,.18);color:var(--white)}
+    .button-outline-dark{border-color:var(--brown-950);background:transparent;color:var(--brown-950)}
+    .text-link{font-weight:850;text-underline-offset:4px}
+
+    .hero{
+      position:relative;min-height:650px;display:flex;align-items:flex-end;isolation:isolate;color:var(--white);overflow:hidden;
+      background:#263520;
+    }
+    .hero::after{
+      content:"";position:absolute;inset:0;z-index:-1;
+      background:linear-gradient(180deg,rgba(18,20,15,.04) 0%,rgba(22,16,13,.14) 36%,rgba(28,18,15,.88) 100%);
+    }
+    .hero-art{position:absolute;inset:0;z-index:-2}
+    .hero-art svg{width:100%;height:100%;object-fit:cover}
+    .hero-content{padding:118px 0 38px}
+    .hero-copy{display:grid;gap:18px}
+    .hero .lede{max-width:330px}
+    .hero-actions{display:grid;gap:10px;margin-top:4px}
+    .privacy-note{
+      display:flex;gap:10px;align-items:flex-start;padding-top:16px;border-top:1px solid rgba(255,255,255,.22);
+      color:rgba(255,255,255,.78);font-size:.8rem;line-height:1.45;
+    }
+    .privacy-icon{flex:0 0 26px;width:26px;height:26px;display:grid;place-items:center;border:1px solid currentColor;border-radius:50%;font-size:.7rem}
+
+    section{padding:66px 0}
+    .section-light{background:var(--beige-100);color:var(--brown-950)}
+    .section-soft{background:var(--beige-200);color:var(--brown-950)}
+    .section-dark{background:var(--brown-950);color:var(--white)}
+    .section-head{display:grid;gap:14px;margin-bottom:30px}
+
+    .audience-list{display:grid;gap:14px}
+    .audience-card{
+      display:grid;grid-template-columns:52px 1fr auto;gap:14px;align-items:center;
+      min-height:126px;padding:18px;border:1px solid rgba(43,33,29,.13);border-radius:var(--radius-s);background:var(--beige-50);
+      text-decoration:none;box-shadow:0 6px 20px rgba(36,23,20,.04);
+    }
+    .audience-card:active{transform:scale(.99)}
+    .icon-circle{width:52px;height:52px;display:grid;place-items:center;border-radius:50%;background:var(--beige-200);color:var(--brown-950)}
+    .icon-circle svg{width:25px;height:25px}
+    .audience-copy h3{font-size:1.25rem}
+    .audience-copy p{margin-top:5px;color:var(--muted);font-size:.83rem;line-height:1.45}
+    .arrow{font-size:1.2rem}
+    .guided-note{
+      display:flex;gap:9px;align-items:flex-start;margin-top:20px;padding:14px;border-radius:12px;background:rgba(36,23,20,.055);
+      color:var(--muted);font-size:.82rem;
+    }
+
+    .care-list{display:grid;gap:14px;margin-top:30px}
+    .care-card{
+      min-height:230px;display:flex;flex-direction:column;gap:14px;padding:24px;border:1px solid rgba(255,255,255,.18);
+      border-radius:var(--radius-s);background:rgba(255,255,255,.055);
+    }
+    .tag{
+      width:fit-content;padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.11);
+      color:#eadfce;font-size:.65rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase;
+    }
+    .care-card p{color:rgba(255,255,255,.72);font-size:.92rem}
+    .care-card .button{margin-top:auto}
+
+    .assessment-visual{
+      min-height:290px;position:relative;margin:28px 0 24px;border-radius:var(--radius-m);overflow:hidden;
+      background:linear-gradient(145deg,#d8ccbf,#faf6f0);
+    }
+    .assessment-visual::before{
+      content:"";position:absolute;width:85px;height:220px;left:49%;top:18%;border:2px solid rgba(43,33,29,.32);
+      border-radius:80% 20% 80% 20%;transform:rotate(19deg);
+    }
+    .assessment-visual::after{
+      content:"";position:absolute;width:78px;height:78px;left:29%;top:19%;border-radius:50%;
+      background:radial-gradient(circle,#f7ebd8 0 20%,#ceb17b 21% 30%,#faf7f2 31% 61%,transparent 62%);
+    }
+    .image-label{position:absolute;left:14px;bottom:14px;padding:7px 9px;border-radius:8px;background:rgba(255,253,249,.9);font-size:.65rem;font-weight:850;text-transform:uppercase;letter-spacing:.07em}
+    .proof-list{display:grid;gap:12px;margin-top:26px}
+    .proof-card{
+      display:grid;grid-template-columns:46px 1fr;gap:13px;padding:18px;border:1px solid rgba(43,33,29,.12);
+      border-radius:var(--radius-s);background:var(--beige-50);
+    }
+    .proof-card .icon-circle{width:46px;height:46px;background:var(--beige-300)}
+    .proof-card .icon-circle svg{width:22px;height:22px}
+    .proof-card h3{font-size:1.15rem}
+    .proof-card p{margin-top:5px;color:var(--muted);font-size:.82rem;line-height:1.5}
+    .approval-note{margin-top:12px;color:#795324;font-size:.72rem;font-weight:800}
+    .privacy-bar{display:grid;grid-template-columns:30px 1fr;gap:11px;margin-top:16px;padding:16px;border:1px solid rgba(43,33,29,.13);border-radius:var(--radius-s);background:var(--beige-50)}
+    .privacy-bar strong{display:block;font-size:.9rem}
+    .privacy-bar p{margin-top:4px;color:var(--muted);font-size:.76rem}
+    .privacy-bar a{grid-column:2;font-size:.78rem}
+
+    .journey-list{display:grid;gap:0;margin-top:32px;border-top:1px solid rgba(255,255,255,.22)}
+    .journey-step{display:grid;grid-template-columns:48px 1fr;gap:14px;padding:22px 0;border-bottom:1px solid rgba(255,255,255,.22)}
+    .step-number{font-family:Georgia,"Times New Roman",serif;font-size:1.9rem;color:var(--gold)}
+    .journey-step h3{font-size:1.25rem}
+    .journey-step p{margin-top:6px;color:rgba(255,255,255,.7);font-size:.84rem}
+    .closing-actions{display:grid;gap:10px;margin-top:28px}
+
+    .prototype-notes{padding:28px 0 34px;background:var(--beige-100)}
+    details{border:1px solid rgba(43,33,29,.14);border-radius:var(--radius-s);background:var(--beige-50)}
+    summary{min-height:58px;display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;font-size:.85rem;font-weight:900;list-style:none}
+    summary::-webkit-details-marker{display:none}
+    summary::after{content:"+";font-size:1.2rem}details[open] summary::after{content:"−"}
+    .notes-content{padding:0 16px 18px;color:var(--muted);font-size:.78rem}
+    .notes-content ul{padding-left:18px}
+
+    .footer{padding:48px 0 calc(26px + env(safe-area-inset-bottom));background:var(--brown-900);color:var(--white)}
+    .footer-copy{margin-top:14px;color:rgba(255,255,255,.67);font-size:.84rem}
+    .footer-links{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;margin-top:24px}
+    .footer-links a{min-height:44px;display:flex;align-items:center;color:rgba(255,255,255,.78);font-size:.82rem;text-decoration:none}
+    .footer-bottom{margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.53);font-size:.7rem}
+
+    @media(max-width:599px){
+      html,body{background:var(--beige-100)}
+      .device-stage{display:block;min-height:100vh;padding:0}
+      .phone-shell{width:100%;height:100vh;border:0;border-radius:0;box-shadow:none;background:var(--beige-100)}
+      .dynamic-island{display:none}
+      .app{position:fixed;inset:0;border-radius:0}
+    }
+    @media(max-width:360px){
+      .container{width:min(100% - 24px,520px)}
+      h1{font-size:2.55rem}
+      .audience-card{grid-template-columns:46px 1fr auto;padding:15px;gap:11px}
+      .icon-circle{width:46px;height:46px}
+    }
+    @media(prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto}
+      *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div class="device-stage">
+    <div class="phone-shell" aria-label="iPhone-sized mobile prototype">
+      <div class="dynamic-island" aria-hidden="true"></div>
+      <div class="app" id="app">
+        <header class="site-header">
+          <div class="container header-row">
+            <a class="brand" href="#top" aria-label="Stem Health home">
+              <span>STEM</span><span class="brand-mark" aria-hidden="true"></span><span>HEALTH</span>
+            </a>
+            <button class="menu-button" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open navigation menu">
+              <span class="menu-lines" aria-hidden="true"><span></span></span>
+            </button>
+          </div>
+        </header>
+
+        <div class="mobile-menu" id="mobile-menu" hidden>
+          <nav aria-label="Mobile navigation">
+            <a href="#care-options">Services <span aria-hidden="true">→</span></a>
+            <a href="#memberships">Memberships <span aria-hidden="true">→</span></a>
+            <a href="#families">For Families <span aria-hidden="true">→</span></a>
+            <a href="#businesses">For Businesses <span aria-hidden="true">→</span></a>
+            <a href="#about">About <span aria-hidden="true">→</span></a>
+            <a class="button button-dark" href="stem-health-get-started-quiz.html">Start Your Registration</a>
+            <div class="menu-utility"><a href="#member-sign-in">Member Sign In <span aria-hidden="true">→</span></a></div>
+          </nav>
+        </div>
+
+        <main id="main-content">
+          <section class="hero" id="top">
+            <div class="hero-art" aria-hidden="true">
+              <svg viewBox="0 0 393 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="forest" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#536b45"/>
+                    <stop offset="1" stop-color="#172018"/>
+                  </linearGradient>
+                  <linearGradient id="trail" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#9a846e"/>
+                    <stop offset="1" stop-color="#3d2c24"/>
+                  </linearGradient>
+                  <filter id="soft"><feGaussianBlur stdDeviation="10"/></filter>
+                </defs>
+                <rect width="393" height="700" fill="url(#forest)"/>
+                <g opacity=".3" filter="url(#soft)"><circle cx="310" cy="80" r="100" fill="#d9e8b7"/></g>
+                <g opacity=".88">
+                  <rect x="260" y="-20" width="30" height="760" rx="12" fill="#263420"/>
+                  <rect x="330" y="-20" width="25" height="760" rx="12" fill="#1d281b"/>
+                </g>
+                <path d="M160 700 C185 570 205 470 188 365 C175 285 185 210 215 130 L305 130 C270 250 280 345 302 430 C330 530 310 620 280 700 Z" fill="url(#trail)" opacity=".72"/>
+                <g fill="#405438" opacity=".94"><circle cx="255" cy="72" r="78"/><circle cx="345" cy="90" r="86"/><circle cx="285" cy="210" r="66"/><circle cx="370" cy="235" r="72"/></g>
+                <g transform="translate(198 340)" fill="#1a1715" opacity=".84"><circle cx="18" cy="16" r="14"/><path d="M8 33 C10 22 27 22 29 33 L36 100 L0 100 Z"/><path d="M5 96 L-4 160 L12 160 L20 103 L28 160 L44 160 L34 96 Z"/></g>
+              </svg>
+            </div>
+            <div class="container hero-content">
+              <div class="hero-copy">
+                <p class="eyebrow">Primary and proactive healthcare</p>
+                <h1>Care Rooted in You</h1>
+                <p class="lede">Care that remembers you, makes next steps clear, and keeps momentum between visits.</p>
+                <div class="hero-actions">
+                  <a class="button button-light" href="stem-health-get-started-quiz.html">Start Your Registration <span aria-hidden="true">→</span></a>
+                  <a class="button button-outline-light" href="#memberships">Explore Memberships</a>
+                </div>
+                <p class="privacy-note"><span class="privacy-icon" aria-hidden="true">✓</span><span>Your health. Your privacy. Always protected. <strong>[PRIVACY REVIEW REQUIRED]</strong></span></p>
+              </div>
+            </div>
+          </section>
+
+          <section class="section-light" id="about">
+            <div class="container">
+              <div class="section-head">
+                <div><p class="eyebrow">Who we serve</p><h2>Find the right care for you</h2></div>
+                <p class="lede">Stem Health supports individuals, families, and businesses with connected, proactive care.</p>
+              </div>
+              <div class="audience-list">
+                <a class="audience-card" href="#care-options" id="individuals">
+                  <div class="icon-circle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3.5"/><path d="M5 20c.6-4.3 3-6.5 7-6.5s6.4 2.2 7 6.5"/></svg></div>
+                  <div class="audience-copy"><h3>For Individuals</h3><p>Memberships, health assessments, and individual services.</p></div><span class="arrow" aria-hidden="true">→</span>
+                </a>
+                <a class="audience-card" href="#memberships" id="families">
+                  <div class="icon-circle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="3"/><circle cx="16.5" cy="8" r="2.5"/><path d="M3.5 20c.5-4 2.4-6 5.5-6s5 2 5.5 6M13 15c1-.8 2.2-1.2 3.6-1.2 2.6 0 4.2 1.7 4.7 5.2"/></svg></div>
+                  <div class="audience-copy"><h3>For Families</h3><p>Explore connected care for eligible household members.</p></div><span class="arrow" aria-hidden="true">→</span>
+                </a>
+                <a class="audience-card" href="#businesses" id="businesses">
+                  <div class="icon-circle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 21V8h16v13M8 8V4h8v4M8 12h2M14 12h2M8 16h2M14 16h2"/></svg></div>
+                  <div class="audience-copy"><h3>For Businesses</h3><p>Preventive health and wellness support through Team Membership.</p></div><span class="arrow" aria-hidden="true">→</span>
+                </a>
+              </div>
+              <p class="guided-note"><span aria-hidden="true">◉</span><span>Not sure where to start? <a class="text-link" href="stem-health-get-started-quiz.html">Take the care-path quiz.</a></span></p>
+            </div>
+          </section>
+
+          <section class="section-dark" id="care-options">
+            <div class="container">
+              <p class="eyebrow">Choose how to access care</p>
+              <h2>Three clear ways to begin</h2>
+              <p class="lede" style="margin-top:16px">Choose an annual membership, a comprehensive one-day assessment, or an individual medical service.</p>
+              <div class="care-list">
+                <article class="care-card" id="memberships"><span class="tag">Ongoing care</span><h3>Annual Memberships</h3><p>Compare Foundation and Signature for ongoing access, coordination, and preventive support.</p><a class="button button-light" href="#memberships">Explore Memberships</a></article>
+                <article class="care-card"><span class="tag">One-day experience</span><h3>Annual Health Assessments</h3><p>Compare Core and Horizon as comprehensive assessment experiences—not memberships.</p><a class="button button-outline-light" href="#health-assessments">Explore Health Assessments</a></article>
+                <article class="care-card"><span class="tag">Specific need</span><h3>Individual Services</h3><p>Find one service and understand whether the next step is booking, requesting care, or receiving updates.</p><a class="button button-outline-light" href="#guided-next-step">View Individual Services</a></article>
+              </div>
+            </div>
+          </section>
+
+          <section class="section-light" id="health-assessments">
+            <div class="container">
+              <p class="eyebrow">Health Assessments</p>
+              <h2>Health assessments that see the whole picture</h2>
+              <p class="lede" style="margin-top:16px">More thorough than a typical physical. Early signals identified, a clear baseline established, and next steps explained.</p>
+              <div class="assessment-visual" role="img" aria-label="Proposed editorial image placeholder showing a delicate flower on a neutral background"><span class="image-label">Editorial image placeholder</span></div>
+              <a class="button button-dark" href="#health-assessments">Compare Core and Horizon</a>
+              <p class="approval-note">Prototype copy and operational claims require clinical and stakeholder confirmation.</p>
+              <div class="proof-list">
+                <article class="proof-card"><div class="icon-circle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><h3>Results the same day</h3><p>Key results and next steps explained before you leave. [CLINICAL REVIEW REQUIRED]</p></div></article>
+                <article class="proof-card"><div class="icon-circle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="7" r="3"/><path d="M5 20c.6-4 2.9-6 7-6s6.4 2 7 6"/></svg></div><div><h3>Follow-through you can feel</h3><p>Proposed follow-up copy requires confirmation of the approved care model.</p></div></article>
+                <article class="proof-card"><div class="icon-circle" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 4h12v16H6zM9 8h6M9 12h6M9 16h4"/></svg></div><div><h3>Diagnostics that inform decisions</h3><p>Proposed proof point requiring clinical and service-scope approval.</p></div></article>
+              </div>
+              <div class="privacy-bar"><span class="privacy-icon" style="color:var(--brown-950)" aria-hidden="true">✓</span><div><strong>Your health. Your privacy. Always protected.</strong><p>Approved privacy language is required before production.</p></div><a class="text-link" href="#privacy">Learn about privacy →</a></div>
+            </div>
+          </section>
+
+          <section class="section-dark" id="guided-next-step">
+            <div class="container">
+              <p class="eyebrow">A guided next step</p>
+              <h2>Registration begins with clarity—not a blank form</h2>
+              <p class="lede" style="margin-top:16px">Choose who care is for and what kind of support you need before sharing personal information.</p>
+              <div class="journey-list">
+                <article class="journey-step"><span class="step-number">01</span><div><h3>Choose who care is for</h3><p>Yourself, your family, or your business.</p></div></article>
+                <article class="journey-step"><span class="step-number">02</span><div><h3>Choose a care path</h3><p>Membership, one-day assessment, or one specific service.</p></div></article>
+                <article class="journey-step"><span class="step-number">03</span><div><h3>Register with confidence</h3><p>Share information after the choice is clear and receive explicit next steps.</p></div></article>
+              </div>
+              <div class="closing-actions"><a class="button button-light" href="stem-health-get-started-quiz.html">Start Your Registration</a><a class="button button-outline-light" href="#memberships">Explore Memberships</a></div>
+            </div>
+          </section>
+
+          <section class="prototype-notes" aria-label="Prototype notes">
+            <div class="container"><details><summary>Mobile prototype notes</summary><div class="notes-content"><p>This mobile-first proposal follows the UX Improvement Report: simplified navigation, Start Your Registration as the primary CTA, Explore Memberships as the secondary CTA, immediate audience self-identification, scannable Health Assessment proof points, and a guided path before form entry.</p><ul><li>Designed around a 393 × 852 px iPhone viewport.</li><li>Works from 320 px upward without horizontal scrolling.</li><li>Claims and privacy language remain visibly marked for approval.</li></ul></div></details></div>
+          </section>
+        </main>
+
+        <footer class="footer">
+          <div class="container">
+            <a class="brand" href="#top" style="color:white"><span>STEM</span><span class="brand-mark" aria-hidden="true"></span><span>HEALTH</span></a>
+            <p class="footer-copy">Connected, proactive healthcare designed to make the next step easier to understand.</p>
+            <div class="footer-links"><a href="#memberships">Memberships</a><a href="#health-assessments">Assessments</a><a href="#guided-next-step">Services</a><a href="#businesses">For Business</a><a href="#contact">Contact</a><a id="member-sign-in" href="#member-sign-in">Member Sign In</a></div>
+            <div class="footer-bottom" id="privacy">High-fidelity mobile homepage proposal — prototype content, not approved for production.</div>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const button=document.querySelector('.menu-button');
+      const menu=document.getElementById('mobile-menu');
+      const app=document.getElementById('app');
+      if(!button||!menu||!app)return;
+      function closeMenu(){
+        button.setAttribute('aria-expanded','false');
+        button.setAttribute('aria-label','Open navigation menu');
+        menu.hidden=true;
+        document.body.classList.remove('menu-open');
+      }
+      button.addEventListener('click',function(){
+        const open=button.getAttribute('aria-expanded')==='true';
+        if(open){closeMenu();return;}
+        button.setAttribute('aria-expanded','true');
+        button.setAttribute('aria-label','Close navigation menu');
+        menu.hidden=false;
+        document.body.classList.add('menu-open');
+        menu.querySelector('a').focus();
+      });
+      menu.addEventListener('click',function(event){if(event.target.closest('a'))closeMenu();});
+      document.addEventListener('keydown',function(event){if(event.key==='Escape')closeMenu();});
+    })();
+  </script>
+</body>
+</html>
